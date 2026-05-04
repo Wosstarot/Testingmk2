@@ -52,3 +52,17 @@ std::vector<int> generateFewUnique(size_t n, unsigned int seed) {
     }
     return data;
 }
+
+std::vector<int> generateRandomRange(size_t n, unsigned int seed, unsigned int maxRange) {
+    std::vector<int> data(n);
+    if (n == 0) return data;
+
+    std::mt19937 gen(seed);
+    std::uniform_int_distribution<unsigned int> dist(0, maxRange - 1);
+
+    for (size_t i = 0; i < n; i++) {
+        data[i] = dist(gen);
+    }
+
+    return data;
+}
