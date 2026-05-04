@@ -53,7 +53,8 @@ void benchmarkAlgorithm(
     function<SortStats(const vector<int>&)> sort_fn,
     const vector<size_t>& sizes,
     size_t trials,
-    ofstream& csv
+    ofstream& csv,
+    bool useRangeCases = false
 ) {
     cout << "\nBenchmarking " << name << "..." << endl;
     
@@ -65,12 +66,27 @@ void benchmarkAlgorithm(
             string name;
             vector<int> data;
         };
-        
-        vector<TestCase> cases = {
-            {"sorted", generateSorted(n)},
-            {"reversed", generateReversed(n)},
-            {"random", generateRandom(n)}
-        };
+
+        vector<TestCase> cases;
+        if(useRangeCases == false)
+        {
+            cases = {
+                {"sorted", generateSorted(n)},
+                {"reversed", generateReversed(n)},
+                {"random", generateRandom(n)},
+                {"few_unique", generateFewUnique(n)},
+                {"nearly_sorted", generateNearlySorted(n)}
+            };
+        }
+        else
+        {
+            cases = {
+                {"small_range", generateRandomRange(n, 108, 100)},
+                {"medium_range", generateRandomRange(n, 108, 100000)},
+                {"large_range", generateRandomRange(n, 108, 100000000)}
+            };
+        }
+
         
         for (const auto& test : cases) {
             auto result = runTrials(sort_fn, test.data, trials);
@@ -121,8 +137,12 @@ int main() {
     benchmarkAlgorithm("heap", heapSort, sizes_fast, TRIALS, csv);
     
     // O(n) algorithms
-    benchmarkAlgorithm("counting", countingSort, sizes_fast, TRIALS, csv);
-    benchmarkAlgorithm("radix", radixSort, sizes_fast, TRIALS, csv);
+    //benchmarkAlgorithm("counting", countingSort, sizes_fast, TRIALS, csv);
+    //benchmarkAlgorithm("radix", radixSort, sizes_fast, TRIALS, csv);
+    benchmarkAlgorithm("counting", countingSort, sizes_fast, TRIALS, csv, true);
+    benchmarkAlgorithm("radix", radixSort, sizes_fast, TRIALS, csv, true);
+
+    
     
     csv.close();
     

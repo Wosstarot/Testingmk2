@@ -72,19 +72,36 @@ MARKERS = {
 
 # Case styling used in per-algorithm plots
 CASE_COLORS = {
-    'sorted':   '#4fc3f7',
-    'random':   '#a5d6a7',
-    'reversed': '#ef9a9a',
+    'sorted':        '#4fc3f7',
+    'nearly_sorted': '#38bdf8',
+    'random':        '#a5d6a7',
+    'few_unique':    '#facc15',
+    'reversed':      '#ef9a9a',
+    'small_range':   '#4fc3f7',
+    'medium_range':  '#a5d6a7',
+    'large_range':   '#ef9a9a',
 }
+
 CASE_LABELS = {
-    'sorted':   'Sorted',
-    'random':   'Random',
-    'reversed': 'Reversed',
+    'sorted':        'Sorted',
+    'nearly_sorted': 'Nearly Sorted',
+    'random':        'Random',
+    'few_unique':    'Few Unique',
+    'reversed':      'Reversed',
+    'small_range':   'Small Range',
+    'medium_range':  'Medium Range',
+    'large_range':   'Large Range',
 }
+
 CASE_STYLES = {
-    'sorted':   ('o', '-'),
-    'random':   ('s', '--'),
-    'reversed': ('^', ':'),
+    'sorted':        ('o', '-'),
+    'nearly_sorted': ('D', '-.'),
+    'random':        ('s', '--'),
+    'few_unique':    ('x', '--'),
+    'reversed':      ('^', ':'),
+    'small_range':   ('o', '-'),
+    'medium_range':  ('s', '--'),
+    'large_range':   ('^', ':'),
 }
 
 # ── Style helpers ─────────────────────────────────────────────────────────────
@@ -168,10 +185,37 @@ def plot_compare_nlogn():
     """O(n log n): merge, quick, heap."""
     plot_complexity_group(O_NLOGN_ALGORITHMS, 'O(n log n) Algorithms', 'compare_nlogn.png')
 
-
+"""
 def plot_compare_n():
-    """O(n): counting, radix."""
+    #O(n): counting, radix.
     plot_complexity_group(O_N_ALGORITHMS, 'O(n) Algorithms', 'compare_n.png')
+"""
+def plot_compare_n():
+    """O(n): counting, radix using medium-range input."""
+    linear_df = df[df['case'] == 'medium_range'].sort_values('n')
+
+    fig, ax = plt.subplots(figsize=(9, 5.5))
+
+    for key in O_N_ALGORITHMS:
+        d = linear_df[linear_df['algorithm'] == key]
+        if d.empty:
+            continue
+
+        ax.plot(
+            d['n'], d['time_seconds'],
+            marker=MARKERS[key], color=COLORS[key],
+            label=key.capitalize(), linewidth=2.2,
+            markersize=6, markeredgewidth=0, zorder=3
+        )
+
+    ax.set_xlabel('Input size (n)', fontsize=11)
+    ax.set_ylabel('Time (seconds)', fontsize=11)
+    ax.set_title('O(n) Algorithms — medium-range input',
+                 fontsize=13, fontweight='bold', pad=14)
+
+    format_time_axis(ax)
+    apply_dark_style(fig, [ax])
+    save(fig, 'compare_n.png')
 
 
 def plot_compare_all_comparison_based():
@@ -218,6 +262,7 @@ def plot_compare_all_comparison_based():
     apply_dark_style(fig, [ax])
     save(fig, 'compare_all_comparison_based.png')
 
+# NEw CODE:
 # ── Normalized Graphs ────────────
 
 def plot_normalization_n2():
@@ -274,12 +319,14 @@ def plot_normalization_n_log_n():
 
 def plot_normalization_n():
     
-    random_df = df[df['case'] == 'random'].sort_values('n')
+    #random_df = df[df['case'] == 'random'].sort_values('n')
+    linear_df = df[df['case'] == 'medium_range'].sort_values('n')
 
     fig, ax = plt.subplots(figsize=(10, 6))
     
     for key in O_N_ALGORITHMS:
-        d = random_df[random_df['algorithm'] == key]
+        #d = random_df[random_df['algorithm'] == key]
+        d = linear_df[linear_df['algorithm'] == key]
         if d.empty:
             continue
         d['normalized'] = d['time_seconds'] / d['n']
@@ -292,7 +339,8 @@ def plot_normalization_n():
     #ax.set_yscale('log')
     ax.set_xlabel('Input size n', fontsize=11)
     ax.set_ylabel('Time / (n)', fontsize=11)
-    ax.set_title('Normalized (n) Algorithms - random input',
+    #ax.set_title('Normalized (n) Algorithms - random input',
+    ax.set_title('Normalized (n) Algorithms - medium-range input',
                  fontsize=13, fontweight='bold', pad=14)
 
     apply_dark_style(fig, [ax])
@@ -342,10 +390,15 @@ def plot_per_algorithm():
 
     for key, name, complexity in algo_meta:
         fig, ax = plt.subplots(figsize=(8, 5))
-
         data = df[df['algorithm'] == key]
 
-        for case in ['sorted', 'random', 'reversed']:
+        if key in ['counting', 'radix']:
+            cases_to_plot = ['small_range', 'medium_range', 'large_range']
+        else:
+            cases_to_plot = ['sorted', 'nearly_sorted', 'random', 'few_unique', 'reversed']
+
+        #for case in ['sorted', 'random', 'reversed']:
+        for case in cases_to_plot:
             cdata = data[data['case'] == case].sort_values('n')
             if cdata.empty:
                 continue
